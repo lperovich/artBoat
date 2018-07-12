@@ -1,4 +1,5 @@
 //Code by Laura March 2018
+//Revised July 2018 for the Magazine beach installation
 //Offspring of the boatColorChangeDesign1 code for updated hardware
 //changed include fade potentiometer and the long button press being not quite so long
 //Combines many sketches in the boat color change folder
@@ -24,6 +25,9 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 int16_t packetnum = 0;  // packet counter, we increment per xmission
 //variable for telling us what mode we're in
 
+//CONTROLLER ID
+//each boat and controller pair has a match ID set to make sure the right one gets the right colors
+int thisBoatID = 89;
 
 ///////////// DOTSTAR SETUP
 #include <Adafruit_DotStar.h>
@@ -105,6 +109,7 @@ unsigned long buttonTime[9] = {0,0,0,0,0,0,0,0,0}; //the last time each button c
 //version with the seeboat data
 typedef struct {
   //strings are annoying to send, avoid them
+  int boatID;
   int fade;
   int colRed;
   int colBlue;
@@ -140,12 +145,12 @@ void loop() {
   //put that measurement into a variable
   fade = average[3];
   //if the fade value has changed by enough, send it by radio without changing the other colors/parameters....
+
   if (abs(fade-theData.fade)>10){
     //put it together with the full data packetand then send
     dataFade();
     radioSend();
   }
-
 
   
   //the next one only applies to the three color pots
@@ -229,6 +234,7 @@ void loop() {
 //short button press: when something has changed, the button has switched off and the time has been short enough
     for (int k = 0; k<9; k++){
       if ((buttonState[k] != lastbuttonState[k]) && (buttonState[k]==LOW) && (millis()-buttonTime[k]<longButtonTime)){
+        Serial.print("test1");
         if (longButtonStatus[k]==0){
           ////////////          DO THE THING FOR THE SHORT BUTTON PRESS ////////////////////////////////
           //i.e. send the data to the boat!

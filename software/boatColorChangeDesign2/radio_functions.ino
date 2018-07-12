@@ -57,7 +57,21 @@ void radioSend(){
 
 //  Serial.print("Sending "); Serial.println(buf);
 //  rf95.send((uint8_t *)buf, sizeof(buf));
-
+/*
+      Serial.print("boat ID: ");  
+      Serial.print(theData.boatID);  
+      Serial.println();
+      Serial.print("fade: ");
+      Serial.print(theData.fade);
+      Serial.println();
+      Serial.print("Red: ");
+      Serial.print(theData.colRed);
+      Serial.print(", Blue: ");
+      Serial.print(theData.colBlue);
+      Serial.print(", Green: ");
+      Serial.print(theData.colGreen);  
+      Serial.println();
+*/
 }
 
 

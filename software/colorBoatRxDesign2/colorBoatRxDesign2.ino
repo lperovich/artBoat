@@ -1,5 +1,6 @@
-// Feather9x_RX
-// -*- mode: C++ -*-
+//Code by Laura March 2018
+//Revised July 2018 for the Magazine beach installation
+//Based on: Feather9x_RX
 // Example sketch showing how to create a simple messaging client (receiver)
 // with the RH_RF95 class. RH_RF95 class does not provide for addressing or
 // reliability, so you should only use RH_RF95 if you do not need the higher
@@ -25,6 +26,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 //version with the colorboard boat data
 typedef struct {
   //strings are annoying to send, avoid them
+  int boatID;
   int fade;
   int colRed;
   int colBlue;
@@ -32,6 +34,8 @@ typedef struct {
 } Payload;
 Payload theData;
 
+int thisBoatID=89; //the ID of the actual boat this board is on, different value for each boat and controller pair
+int boatID; //the ID that the sent data belongs to
 int fade;
 int colRed=0;
 int colGreen=0;
@@ -116,7 +120,7 @@ void radioSetup(){
   rf95.setTxPower(23, false);
 
 //Print the column headers
-Serial.println("fade, colorRed, colorBlue, colorGreen");
+Serial.println("boatID, fade, colorRed, colorBlue, colorGreen");
 
 }
 
@@ -133,52 +137,38 @@ void radioReceive(){
       //from moteino code
       theData = *(Payload*)buf;
       //theData = *(Payload*)radio.DATA; //assume radio.DATA actually contains our struct and not something else
+      Serial.print("boat ID: ");  
+      Serial.print(theData.boatID);  
+      Serial.println();
+      Serial.print("fade: ");
       Serial.print(theData.fade);
-      Serial.print(",");
+      Serial.println();
+      Serial.print("Red: ");
       Serial.print(theData.colRed);
-      Serial.print(",");
+      Serial.print(", Blue: ");
       Serial.print(theData.colBlue);
-      Serial.print(",");
+      Serial.print(", Green: ");
       Serial.print(theData.colGreen);  
       Serial.println();
-      
-      //Do the color setting--CASCADE VERSION
-      /*for (int k = 0; k<numLEDs; k++){
-        //NOTE: DIFFERENT STRIPS HAVE THE COLORS IN DIFFERENT ORDERS! CHECK THEM!!
-       // dotStarSet(k, theData.colBlue, theData.colGreen, theData.colRed);
-      }
-      */
 
-//Different version for the continuous fade boat
-//fade should impact fadeLength
-//fade goes from 0 to 1024 or so
-//fadeLength should probably go from 0 to 150? 256 is the max color difference, so it shouldn't be more than that
-//It also needs to be flipped to make sense with the controller pot orientation
-  fadeLength = map(fade, 0, 1023, 150, 0);
+      boatID = theData.boatID; //the other ones need to go later so the fade works out correctly
 
-//execute the lights change
-  stripFade();
-/*
-      if (fade == 0){
-        //Do the color setting--ALL AT ONCE VERSION
-        for (int k = 0; k<numLEDs; k++){
-          strip.setPixelColor(k, strip.Color(theData.colBlue, theData.colGreen, theData.colRed));
-        }
-          strip.show();
-      }
-      if (fade == 1){
-        stripFade();
-      }
-*/
-
-
-
-      //Set the storing variables--do this after the color appearing so the fade part works
-      fade = theData.fade;
-      colRed = theData.colRed;
-      colBlue = theData.colBlue;
-      colGreen = theData.colGreen;
-      
+    //If this is the ID for this boat, then implement the color change!
+    if (boatID==thisBoatID){
+        //fade should impact fadeLength
+        //fade goes from 0 to 1024 or so
+        //fadeLength should probably go from 0 to 150? 256 is the max color difference, so it shouldn't be more than that
+        //It also needs to be flipped to make sense with the controller pot orientation
+          fadeLength = map(fade, 0, 1023, 150, 0);
+        
+        //execute the lights change
+          stripFade();
+              //Set the storing variables--do this after the color appearing so the fade part works
+              fade = theData.fade;
+              colRed = theData.colRed;
+              colBlue = theData.colBlue;
+              colGreen = theData.colGreen;
+          }
     }
     else
     {
@@ -231,4 +221,24 @@ void dotStarSet(int ledNum, int redVal, int blueVal, int greenVal){
   strip.show();
 }
 
+
+/*
+      if (fade == 0){
+        //Do the color setting--ALL AT ONCE VERSION
+        for (int k = 0; k<numLEDs; k++){
+          strip.setPixelColor(k, strip.Color(theData.colBlue, theData.colGreen, theData.colRed));
+        }
+          strip.show();
+      }
+      if (fade == 1){
+        stripFade();
+      }
+*/
+
+      //Do the color setting--CASCADE VERSION
+      /*for (int k = 0; k<numLEDs; k++){
+        //NOTE: DIFFERENT STRIPS HAVE THE COLORS IN DIFFERENT ORDERS! CHECK THEM!!
+       // dotStarSet(k, theData.colBlue, theData.colGreen, theData.colRed);
+      }
+      */
 
